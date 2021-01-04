@@ -1,8 +1,5 @@
-//
-//  bank.swift
-//  BankManagerConsoleApp
-//
-//  Created by 강인희 on 2021/01/04.
-//
+
 
 import Foundation
+
+// 같은 파일 생성시 충돌 테스트
