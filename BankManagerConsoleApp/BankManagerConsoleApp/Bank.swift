@@ -1,12 +1,13 @@
 
-struct Bank {
-    private var serviceCounter: [BankClerk] = []
+import Foundation
+
+class Bank {
+    private var serviceCounter: [Int : BankClerk] = [:]
     private var waitingList: [Client] = []
     private var totalVistedClientsNumber: Int = 0
-    private var totalOperatingTime: Float = 0.0
     private var numberOfEmployees: Int = 1
     var endingMent: String {
-            return "업무가 마감되었습니다. 오늘 업무를 처리한 고객은 총 \(totalVistedClientsNumber)명이며, 총 업무시간은 \(totalOperatingTime)초입니다."
+            return "업무가 마감되었습니다. 오늘 업무를 처리한 고객은 총 \(calculateTotalProcessedClientsNumber())명이며, 총 업무시간은 \(calculateTotalOperatingTime())초입니다."
     }
     lazy var initialNumberOfClients: Int = 0 {
         didSet {
@@ -19,18 +20,29 @@ struct Bank {
         self.serviceCounter = loadBankClerks(of: numberOfEmployees)
         self.waitingList = []
         self.totalVistedClientsNumber = 0
-        self.totalOperatingTime = 0.0
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(abc), name: NSNotification.Name("새로운 업무 가능"), object: nil)
     }
     
-    private mutating func loadBankClerks(of number: Int) -> [BankClerk]{
-        for _ in 0 ..< number {
-            let newBankClerk = BankClerk()
-            self.serviceCounter.append(newBankClerk)
+    private func loadBankClerks(of number: Int) -> [Int : BankClerk] {
+        guard number >= 0 else {
+            print("loadBankClerks에 0 이상의 값을 입력해주세요.")
+            return [:]
+        }
+        
+        if number == 0 {
+            print("업무가 가능한 은행원이 없습니다!")
+            return [:]
+        }
+        
+        for i in 1 ... number {
+            let newBankClerk = BankClerk(counterNumber: i)
+            serviceCounter[i - 1] = newBankClerk
         }
         return self.serviceCounter
     }
     
-    private mutating func loadWaitingList(of size: Int) {
+    private func loadWaitingList(of size: Int) {
         for i in 1...size {
             let newClient = Client(waitingNumber: i, business: .basic(requiredTime: 0.7))
             waitingList.append(newClient)
@@ -38,23 +50,41 @@ struct Bank {
         self.totalVistedClientsNumber = size
     }
     
-    mutating func serve() {
-        while (!waitingList.isEmpty) {
-            let inProcessClient = waitingList.removeFirst()
-            // bankClerk가 다수일경우, assignedEmployee를 설정하는 과정을 추가해야한다.
-            let assignedEmployee = serviceCounter[0]
-            assignedEmployee.isWorking = true
-            while assignedEmployee.isWorking {
-                print("\(inProcessClient.waitingNumber)번 고객 업무 시작")
-                assignedEmployee.handleBusiness(of: inProcessClient)
-                print("\(inProcessClient.waitingNumber)번 고객 업무 종료")
-                assignedEmployee.isWorking = false
-            }
+    func serveClient() {
+        guard !waitingList.isEmpty else { return }
+        
+        let inProcessClient = waitingList.removeFirst()
+        // bankClerk가 다수일경우, assignedEmployee를 설정하는 과정을 추가해야한다.
+        guard let assignedEmployee = serviceCounter[0] else { return }
+        assignedEmployee.isWorking = true
+        while assignedEmployee.isWorking {
+            assignedEmployee.handleBusiness(of: inProcessClient)
+            assignedEmployee.isWorking = false
+        }
+//        }
+    }
+    
+    @objc func abc(_ noti: Notification) {
+        guard let client = waitingList.first else { return }
+        guard let counterNumber = noti.userInfo?["counterNumber"] as? Int else {
+            return
         }
         
-        for employee in serviceCounter {
-            totalOperatingTime = (totalOperatingTime >= employee.totalWorkingTime) ? totalOperatingTime : employee.totalWorkingTime
-        }
-       
+        waitingList.removeFirst()
+        serviceCounter[counterNumber - 1]?.handleClientBusiness(client: client)
     }
 }
+
+extension Bank {
+    func calculateTotalOperatingTime() -> Float {
+        let longestWorkingTime = serviceCounter.map { $0.totalWorkingTime }.max() ?? 0
+        let roundedNumber = round(longestWorkingTime * 100) / 100
+        return roundedNumber
+    }
+    
+    func calculateTotalProcessedClientsNumber() -> Int {
+        let totalProcessedClientsNumber = serviceCounter.map { $0.totalProcessedClients }.reduce(0) { $0 + $1 }
+        return totalProcessedClientsNumber
+    }
+}
+
