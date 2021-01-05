@@ -16,8 +16,6 @@ class BankClerk {
         
         if client.business == .basic {
             totalWorkingTime += 0.7
-            let roundedNumber = round(totalWorkingTime * 100) / 100
-            print(roundedNumber)
             totalClient += 1
         } else {
             print("죄송합니다! 제가 처리할 수 없는 업무군요 ㅠ")
@@ -31,7 +29,7 @@ class BankClerk {
         case true:
             print("\(waitingNumber)번 고객 업무 완료")
             isWorking = false
-            NotificationCenter.default.post(name: NSNotification.Name("test"), object: nil, userInfo: ["counterNumber" : counterNumber])
+            NotificationCenter.default.post(name: NSNotification.Name("새로운 업무 가능"), object: nil, userInfo: ["counterNumber" : counterNumber])
         case false:
             print("\(waitingNumber)번 고객 업무 시작")
             isWorking = true

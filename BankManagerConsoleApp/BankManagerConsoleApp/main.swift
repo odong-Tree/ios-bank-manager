@@ -21,7 +21,6 @@ struct ConsoleController {
     func checkUserInput(_ input: String) {
         switch input {
         case "1":
-            print("시작")
             let bankManager = BankManager()
             bankManager.openBank(bankClerkNumber: 1)
             printMenu()

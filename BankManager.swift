@@ -9,7 +9,7 @@ class BankManager {
     var bank = Bank()
     
     init() {
-        NotificationCenter.default.addObserver(self, selector: #selector(abc), name: NSNotification.Name("test"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(abc), name: NSNotification.Name("새로운 업무 가능"), object: nil)
     }
     
     func openBank(bankClerkNumber: Int) {
