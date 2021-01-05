@@ -4,4 +4,3 @@ struct Bank {
     var waitingList: [Client] = []
     var totalVistedClientsNumber: Int = 0
 }
-
